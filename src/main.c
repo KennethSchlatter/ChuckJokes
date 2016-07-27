@@ -1,69 +1,80 @@
 #include <pebble.h>
 
-#define MESSAGE_KEY_norrisJoke 0
+static Window *joke_window;
+static TextLayer *joke_layer;
+static GFont joke_font;
 
-static Window *window;
-static TextLayer *joke;
+enum{
+  STATUS_KEY = 0,
+  MESSAGE_KEY = 1
+};
 
-static void js_ready_handler(void *context) {
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "js_ready_handler called!");
+static void send_message(void){
+  DictionaryIterator *iter;
+  app_message_outbox_begin(&iter);
+  dict_write_cstring(iter, MESSAGE_KEY, "I'm a Pebble!");
+  dict_write_end(iter);
+  app_message_outbox_send();
 }
 
-static void new_joke_handler(DictionaryIterator *iter, void *context) {
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "NEW CHUCK NORRIS JOKE RECEIVED!");
-  Tuple *joke_t = dict_find(iter, MESSAGE_KEY_norrisJoke);
-  char *joke_n = joke_t->value->cstring;
-  static char joke_buff[256];
-  snprintf(joke_buff, sizeof(joke_buff), joke_n);
-  text_layer_set_text(joke, joke_buff);
-}
-
-static void tap_handler(AccelAxisType axis, int32_t direction) {
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Detected Tap/Twist event!");
-  DictionaryIterator *out_iter;
-  AppMessageResult result = app_message_outbox_begin(&out_iter);
-  if(result == APP_MSG_OK) {
-    int value = 0;
-    dict_write_int(out_iter, MESSAGE_KEY_norrisJoke, &value, sizeof(int), true);
-    result = app_message_outbox_send();
-    if(result != APP_MSG_OK) {
-      APP_LOG(APP_LOG_LEVEL_ERROR, "Error sending the outbox: %d", (int)result);
-    }
-  }else{
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Error sending the outbox: %d", (int)result);
+static void in_received_handler(DictionaryIterator *received, void *context){
+  Tuple *tuple;
+  tuple = dict_find(received, STATUS_KEY);
+  if(tuple){
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Received Status: %d", (int)tuple->value->uint32);
   }
+  tuple = dict_find(received, MESSAGE_KEY);
+  if(tuple){
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Received Joke: %s", tuple->value->cstring);
+    text_layer_set_text(joke_layer, tuple->value->cstring);
+  }
+  send_message();
 }
 
-static void window_load() {
-  GRect bounds = layer_get_bounds(window_get_root_layer(window));
-  joke = text_layer_create(bounds);
-  text_layer_set_text_color(joke, GColorBlack);
-  text_layer_set_text(joke, "Hello! Shake your wrist to see a random Chuck Norris joke brought to you by http://api.chucknorris.io");
+static void in_dropped_handler(AppMessageResult reason, void *context){
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Inbox dropped");
 }
 
-static void window_unload() {
-  text_layer_destroy(joke);
+static void out_failed_handler(DictionaryIterator *failed, AppMessageResult reason, void *context){
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox failed");
 }
 
-static void init() {
-  window = window_create();
-  window_set_window_handlers(window, (WindowHandlers) {.load = window_load, .unload = window_unload});
-  window_stack_push(window, true);
+static void joke_window_load(){
+  GRect bounds = layer_get_bounds(window_get_root_layer(joke_window));
+  joke_layer = text_layer_create(bounds);
+  text_layer_set_text(joke_layer, "Click select to fetch new joke!");
+  text_layer_set_font(joke_layer, joke_font);
+  #if defined(PBL_ROUND)
+  text_layer_set_text_alignment(joke_layer, GTextAlignmentCenter);
+  text_layer_enable_screen_text_flow_and_paging(joke_layer, 8);
+  #endif
+  layer_add_child(window_get_root_layer(joke_window), text_layer_get_layer(joke_layer));
+  window_stack_push(joke_window, true);
+}
+
+static void joke_window_unload(){
   
-  accel_tap_service_subscribe(tap_handler);
-  
-  app_message_register_inbox_received(new_joke_handler);
-  app_message_open(app_message_inbox_size_maximum(), app_message_inbox_size_maximum());
-  app_timer_register(3000, js_ready_handler, NULL);
 }
 
-static void deinit() {
-  accel_tap_service_unsubscribe();
-  
-  window_destroy(window);
+static void init(void){
+  joke_window = window_create();
+  window_set_window_handlers(joke_window, (WindowHandlers) {.load = joke_window_load, .unload = joke_window_unload});
+  joke_window_load();
+  joke_font = fonts_get_system_font(FONT_KEY_GOTHIC_28);
+  app_message_register_inbox_received(in_received_handler);
+  app_message_register_inbox_dropped(in_dropped_handler);
+  app_message_register_outbox_failed(out_failed_handler);
+  const int inbox_size = 256;
+  const int outbox_size = 128;
+  app_message_open(inbox_size, outbox_size);
 }
 
-int main() {
+static void deinit(void){
+  app_message_deregister_callbacks();
+  joke_window_unload();
+}
+
+int main(void){
   init();
   app_event_loop();
   deinit();

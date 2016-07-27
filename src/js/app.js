@@ -1,26 +1,34 @@
-var ajax = require('ajax');
+// JS based off of https://github.com/austinsparkleague/APIExampleThree/blob/master/pokemon/src/js/app.js
 
-Pebble.addEventListener('ready', function() {
-  console.log('Pebble.js ready!');
+function sendMessage(summary){
+  Pebble.sendAppMessage({"message": summary}, messageSuccessHandler, messageFailureHandler);
+  console.log(summary);
+}
+
+function messageSuccessHandler(){
+  console.log("Message sent successfully!");
+}
+
+function messageFailureHandler(){
+  console.log("Message failed to send");
+  sendMessage();
+}
+
+Pebble.addEventListener("ready", function(e){
+  var xmlhttp = new XMLHttpRequest();
+  var url = "https://api.chucknorris.io/jokes/random";
+  xmlhttp.onreadystatechange = function(){
+    if(xmlhttp.readyState == 4 && xmlhttp.status == 200){
+      var infoFromAPI = JSON.parse(xmlhttp.responseText);
+      var joke = infoFromAPI.value;
+      var summary = joke;
+      sendMessage(summary);
+    }
+  };
+  xmlhttp.open("GET", url, true);
+  xmlhttp.send();
 });
 
-Pebble.addEventListener('appmessage', function(){
-  ajax({
-    url: 'https://api.chucknorris.io/jokes/random', type: 'json'
-      }, function(data){
-        console.log('Fetched joke!');
-        var chuckJoke = data[0].value;
-        var dict = {
-          'norrisJoke':  chuckJoke
-        };
-
-        Pebble.sendAppMessage(dict, function() {
-          console.log('Message sent successfully: ' + JSON.stringify(dict));
-        }, function(e) {
-          console.log('Message failed: '+ JSON.stringify(e));
-        });
-      }, function(error){
-        console.log('Failed fetching joke');
-      });
+Pebble.addEvenListener("appmessage", function(e){
+  console.log("Received message" + e.payload.message);
 });
-

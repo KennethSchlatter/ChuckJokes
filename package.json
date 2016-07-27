@@ -1,16 +1,17 @@
 {
-    "author": "help.frostedtorus@gmail.com",
+    "author": "Kenneth Schlatter",
     "dependencies": {},
     "keywords": [],
-    "name": "chuck",
+    "name": "cnj",
     "pebble": {
         "capabilities": [
             ""
         ],
-        "displayName": "Chuck",
+        "displayName": "Chuck Norris Jokes",
         "enableMultiJS": true,
         "messageKeys": [
-            "joke"
+            "status",
+            "message"
         ],
         "projectType": "native",
         "resources": {
@@ -22,7 +23,7 @@
             "basalt",
             "chalk"
         ],
-        "uuid": "01bc2048-3474-4259-88a2-3dc30b779ffd",
+        "uuid": "23c75a66-7702-415c-8396-65e3e8e46703",
         "watchapp": {
             "watchface": false
         }
