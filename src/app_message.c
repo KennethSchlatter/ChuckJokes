@@ -1,7 +1,7 @@
 /*
     This code is based off of Liam McMain's Movie Quotes API example watchapp.
     Liam's orriginal code can be found here: https://github.com/austinsparkleague/APIExampleOne/tree/master/movie_quotes .
-    The API is from https://chucknorris.io . Have fun!
+    The API and menu image are from https://chucknorris.io . 
 */
 
 #include <pebble.h>

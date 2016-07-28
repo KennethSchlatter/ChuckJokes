@@ -1,13 +1,13 @@
 {
-    "author": "liam@mcmains.net",
+    "author": "Kenneth Schlatter",
     "dependencies": {},
     "keywords": [],
-    "name": "movie-quotes",
+    "name": "cnj",
     "pebble": {
         "capabilities": [
             ""
         ],
-        "displayName": "Movie Quotes",
+        "displayName": "Chuck Norris Jokes",
         "enableMultiJS": true,
         "messageKeys": [
             "status",
@@ -15,7 +15,15 @@
         ],
         "projectType": "native",
         "resources": {
-            "media": []
+            "media": [
+                {
+                    "file": "images/menu image",
+                    "menuIcon": true,
+                    "name": "MENU_IMG",
+                    "targetPlatforms": null,
+                    "type": "bitmap"
+                }
+            ]
         },
         "sdkVersion": "3",
         "targetPlatforms": [
