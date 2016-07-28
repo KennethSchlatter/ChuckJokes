@@ -65,6 +65,7 @@ static void init(void) {
 	s_window = window_create();
   window_set_click_config_provider(s_window, (ClickConfigProvider) config_provider);
 	window_stack_push(s_window, true);
+  send_message();
   
   s_text_font = fonts_get_system_font(FONT_KEY_GOTHIC_18);
 
