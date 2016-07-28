@@ -1,13 +1,13 @@
 {
-    "author": "Kenneth Schlatter",
+    "author": "liam@mcmains.net",
     "dependencies": {},
     "keywords": [],
-    "name": "cnj",
+    "name": "movie-quotes",
     "pebble": {
         "capabilities": [
             ""
         ],
-        "displayName": "Chuck Norris Jokes",
+        "displayName": "Movie Quotes",
         "enableMultiJS": true,
         "messageKeys": [
             "status",
@@ -23,7 +23,7 @@
             "basalt",
             "chalk"
         ],
-        "uuid": "23c75a66-7702-415c-8396-65e3e8e46703",
+        "uuid": "c7830cca-31d4-4d28-9151-bef6687ee8a1",
         "watchapp": {
             "watchface": false
         }

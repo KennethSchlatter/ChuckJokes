@@ -1,34 +1,44 @@
-// JS based off of https://github.com/austinsparkleague/APIExampleThree/blob/master/pokemon/src/js/app.js
-
-function sendMessage(summary){
-  Pebble.sendAppMessage({"message": summary}, messageSuccessHandler, messageFailureHandler);
-  console.log(summary);
+// Function to send a message to the Pebble using AppMessage API
+// We are currently only sending a message using the "status" appKey defined in appinfo.json/Settings
+function sendMessage(summary) {
+	Pebble.sendAppMessage({"message": summary}, messageSuccessHandler, messageFailureHandler);
 }
 
-function messageSuccessHandler(){
-  console.log("Message sent successfully!");
+// Called when the message send attempt succeeds
+function messageSuccessHandler() {
+  console.log("Message send succeeded.");  
 }
 
-function messageFailureHandler(){
-  console.log("Message failed to send");
+// Called when the message send attempt fails
+function messageFailureHandler() {
+  console.log("Message send failed.");
   sendMessage();
 }
 
-Pebble.addEventListener("ready", function(e){
-  var xmlhttp = new XMLHttpRequest();
-  var url = "https://api.chucknorris.io/jokes/random";
-  xmlhttp.onreadystatechange = function(){
-    if(xmlhttp.readyState == 4 && xmlhttp.status == 200){
-      var infoFromAPI = JSON.parse(xmlhttp.responseText);
-      var joke = infoFromAPI.value;
-      var summary = joke;
-      sendMessage(summary);
-    }
-  };
-  xmlhttp.open("GET", url, true);
-  xmlhttp.send();
+// Called when JS is ready
+Pebble.addEventListener("ready", function(e) {
+  reqQuote();
+});
+												
+// Called when incoming message from the Pebble is received
+// We are currently only checking the "message" appKey defined in appinfo.json/Settings
+Pebble.addEventListener("appmessage", function(e) {
+  console.log("Received Message: " + e.payload.message);
+  reqQuote();
 });
 
-Pebble.addEvenListener("appmessage", function(e){
-  console.log("Received message" + e.payload.message);
-});
+function reqQuote() {
+  var xmlhttp = new XMLHttpRequest();
+  var url = "https://api.chucknorris.io/jokes/random";
+
+  xmlhttp.onreadystatechange = function() {
+      if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+          var infoFromAPI = JSON.parse(xmlhttp.responseText);
+          var summary = infoFromAPI.value;        
+        sendMessage("\n" + summary);
+      }
+  };
+  
+  xmlhttp.open("GET", url, true);
+  xmlhttp.send();
+}
